@@ -8,6 +8,7 @@ import Incidents from './pages/Incidents';
 import IncidentDetail from './pages/IncidentDetail';
 import NewIncident from './pages/NewIncident';
 import AuditLogs from './pages/AuditLogs';
+import Users from './pages/Users';
 
 export default function App() {
   return (
@@ -37,6 +38,11 @@ export default function App() {
           <Route path="audit-logs" element={
             <PrivateRoute requiredRole="ADMIN">
               <AuditLogs />
+            </PrivateRoute>
+          } />
+          <Route path="users" element={
+            <PrivateRoute requiredRole="ADMIN">
+              <Users />
             </PrivateRoute>
           } />
         </Route>

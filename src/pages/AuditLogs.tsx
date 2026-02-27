@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import type { AuditLog } from '../types';
+import { downloadJSON, downloadCSV } from '../lib/export';
 
 export default function AuditLogs() {
     const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -36,9 +37,21 @@ export default function AuditLogs() {
 
     return (
         <div className="audit-logs animate-in" style={{ maxWidth: 1000 }}>
-            <div style={{ marginBottom: 24 }}>
-                <h1>Audit Logs</h1>
-                <p>{total} total log entries</p>
+            <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                    <h1>Audit Logs</h1>
+                    <p>{total} total log entries</p>
+                </div>
+                <div className="flex gap-2">
+                    <button className="btn btn-ghost btn-sm" onClick={() => {
+                        const flat = logs.map(l => ({
+                            id: l.id, action: l.action, entityType: l.entityType, entityId: l.entityId,
+                            userName: l.user.name, userRole: l.user.role, createdAt: l.createdAt
+                        }));
+                        downloadCSV(flat, 'audit-logs');
+                    }}>Export CSV</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => downloadJSON(logs, 'audit-logs')}>Export JSON</button>
+                </div>
             </div>
 
             {loading ? (

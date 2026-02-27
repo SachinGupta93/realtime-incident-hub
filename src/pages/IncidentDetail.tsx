@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuthStore } from '../store/authStore';
 import { getSocket } from '../api/socket';
 import type { Incident, Status } from '../types';
+import Comments from '../components/Comments';
 
 const STATUS_FLOW: Record<Status, Status[]> = {
     OPEN: ['IN_PROGRESS'],
@@ -24,13 +25,14 @@ export default function IncidentDetail() {
     const [error, setError] = useState('');
     const [updating, setUpdating] = useState(false);
     const [editing, setEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ title: '', description: '', severity: '' });
+    const [editForm, setEditForm] = useState({ title: '', description: '', severity: '', assignedToId: '' as string | null });
+    const [users, setUsers] = useState<Array<{ id: string; name: string; role: string }>>([]);
 
     const fetchIncident = async () => {
         try {
             const { data } = await api.get(`/api/incidents/${id}`);
             setIncident(data);
-            setEditForm({ title: data.title, description: data.description, severity: data.severity });
+            setEditForm({ title: data.title, description: data.description, severity: data.severity, assignedToId: data.assignedTo?.id ?? null });
         } catch {
             setError('Incident not found');
         } finally {
@@ -39,6 +41,13 @@ export default function IncidentDetail() {
     };
 
     useEffect(() => { fetchIncident(); }, [id]);
+
+    // Fetch users for assignment dropdown when editing
+    useEffect(() => {
+        if (editing && isAdmin && users.length === 0) {
+            api.get('/api/users').then(({ data }) => setUsers(data)).catch(() => {});
+        }
+    }, [editing, isAdmin]);
 
     // Live updates
     useEffect(() => {
@@ -67,7 +76,13 @@ export default function IncidentDetail() {
         e.preventDefault();
         setUpdating(true);
         try {
-            const { data } = await api.patch(`/api/incidents/${id}`, editForm);
+            const payload: Record<string, unknown> = {
+                title: editForm.title,
+                description: editForm.description,
+                severity: editForm.severity,
+            };
+            if (isAdmin) payload.assignedToId = editForm.assignedToId || null;
+            const { data } = await api.patch(`/api/incidents/${id}`, payload);
             setIncident(data);
             setEditing(false);
         } catch {
@@ -162,6 +177,11 @@ export default function IncidentDetail() {
                             </div>
                         </div>
                     )}
+
+                    {/* Comments */}
+                    <div className="card" style={{ marginTop: 16 }}>
+                        <Comments incidentId={id!} />
+                    </div>
                 </div>
 
                 {/* Sidebar info */}
@@ -191,7 +211,22 @@ export default function IncidentDetail() {
                             <dd>{incident.createdBy.name} <span className={`badge badge-${incident.createdBy.role.toLowerCase()}`}>{incident.createdBy.role}</span></dd>
 
                             <dt>Assigned To</dt>
-                            <dd>{incident.assignedTo?.name ?? <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>}</dd>
+                            <dd>
+                                {editing && isAdmin ? (
+                                    <select
+                                        className="form-input"
+                                        value={editForm.assignedToId ?? ''}
+                                        onChange={e => setEditForm(f => ({ ...f, assignedToId: e.target.value || null }))}
+                                    >
+                                        <option value="">Unassigned</option>
+                                        {users.filter(u => u.role !== 'VIEWER').map(u => (
+                                            <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    incident.assignedTo?.name ?? <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>
+                                )}
+                            </dd>
 
                             <dt>Created</dt>
                             <dd style={{ fontFamily: 'JetBrains Mono', fontSize: '0.8rem' }}>{new Date(incident.createdAt).toLocaleString()}</dd>

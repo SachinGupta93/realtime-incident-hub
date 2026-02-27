@@ -42,6 +42,7 @@ model User {
   incidents      Incident[]     @relation("CreatedBy")
   assignedTo     Incident[]     @relation("AssignedTo")
   auditLogs      AuditLog[]
+  comments       Comment[]
   refreshTokens  RefreshToken[]
 }
 
@@ -74,6 +75,7 @@ model Incident {
   updatedAt DateTime @updatedAt
 
   auditLogs AuditLog[]
+  comments  Comment[]
 
   @@index([status])
   @@index([severity])
@@ -96,4 +98,19 @@ model AuditLog {
   @@index([entityId])
   @@index([userId])
   @@index([entityType])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  incidentId String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([incidentId])
+  @@index([userId])
 }

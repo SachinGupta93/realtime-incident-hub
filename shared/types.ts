@@ -35,6 +35,15 @@ export interface AuditLog {
     user: Pick<UserInfo, 'id' | 'name' | 'email' | 'role'>;
 }
 
+export interface Comment {
+    id: string;
+    content: string;
+    incidentId: string;
+    createdAt: string;
+    updatedAt: string;
+    user: Pick<UserInfo, 'id' | 'name' | 'email' | 'role'>;
+}
+
 export interface PaginatedResponse<T> {
     [key: string]: T[] | number;
     total: number;

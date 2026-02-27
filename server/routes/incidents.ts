@@ -44,18 +44,34 @@ export function createIncidentsRouter(io: SocketServer) {
     // GET /api/incidents
     router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
         try {
-            const { status, severity, page = '1', limit = '20' } = req.query as Record<string, string>;
+            const { status, severity, search, sortBy = 'createdAt', order = 'desc', from, to, page = '1', limit = '20' } = req.query as Record<string, string>;
             const skip = (parseInt(page) - 1) * parseInt(limit);
 
             const where: Record<string, unknown> = {};
             if (status) where.status = status;
             if (severity) where.severity = severity;
+            if (search) {
+                where.OR = [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                ];
+            }
+            if (from || to) {
+                where.createdAt = {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to + 'T23:59:59.999Z') } : {}),
+                };
+            }
+
+            const allowedSortFields = ['createdAt', 'updatedAt', 'severity', 'status', 'title'];
+            const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+            const sortOrder = order === 'asc' ? 'asc' : 'desc';
 
             const [incidents, total] = await Promise.all([
                 prisma.incident.findMany({
                     where,
                     select: incidentSelect,
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { [sortField]: sortOrder },
                     skip,
                     take: parseInt(limit),
                 }),

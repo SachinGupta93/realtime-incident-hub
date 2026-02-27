@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import type { Incident } from '../types';
 import { useAuthStore } from '../store/authStore';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface Stats {
     open: number;
@@ -84,6 +85,64 @@ export default function Dashboard() {
                         ))}
                     </div>
 
+                    {/* Charts row */}
+                    {stats && (
+                        <div className="charts-row">
+                            <div className="card chart-card">
+                                <h3 style={{ marginBottom: 16 }}>By Status</h3>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart data={[
+                                        { name: 'Open', value: stats.open, fill: '#ef4444' },
+                                        { name: 'In Progress', value: stats.in_progress, fill: '#3b82f6' },
+                                        { name: 'Resolved', value: stats.resolved, fill: '#10b981' },
+                                        { name: 'Closed', value: stats.closed, fill: '#6b7280' },
+                                    ]}>
+                                        <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                        <YAxis allowDecimals={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                        <Tooltip contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8 }} />
+                                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                                            {[
+                                                { name: 'Open', fill: '#ef4444' },
+                                                { name: 'In Progress', fill: '#3b82f6' },
+                                                { name: 'Resolved', fill: '#10b981' },
+                                                { name: 'Closed', fill: '#6b7280' },
+                                            ].map((entry, i) => (
+                                                <Cell key={i} fill={entry.fill} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="card chart-card">
+                                <h3 style={{ marginBottom: 16 }}>By Severity</h3>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'Critical', value: stats.critical },
+                                                { name: 'High', value: stats.high },
+                                                { name: 'Medium', value: (stats.open + stats.in_progress + stats.resolved + stats.closed) - stats.critical - stats.high },
+                                            ].filter(d => d.value > 0)}
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={80}
+                                            innerRadius={40}
+                                            paddingAngle={3}
+                                            dataKey="value"
+                                            label={({ name, value }) => `${name}: ${value}`}
+                                        >
+                                            <Cell fill="#ef4444" />
+                                            <Cell fill="#f59e0b" />
+                                            <Cell fill="#10b981" />
+                                        </Pie>
+                                        <Tooltip contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8 }} />
+                                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="recent-section">
                         <div className="flex justify-between items-center" style={{ marginBottom: 16 }}>
                             <h2>Recent Incidents</h2>
@@ -143,5 +202,8 @@ const dashStyles = `
 .stat-icon { font-size: 1.5rem; }
 .stat-value { font-size: 2.5rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+.chart-card { min-height: 280px; }
+@media (max-width: 768px) { .charts-row { grid-template-columns: 1fr; } }
 .recent-section {}
 `;

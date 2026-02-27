@@ -3,17 +3,22 @@ import { NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
 import LiveFeed from './LiveFeed';
+import { useRealtimeToasts } from '../hooks/useRealtimeToasts';
+import { useTheme } from './ThemeProvider';
 
 const navItems = [
     { to: '/', label: 'Dashboard', icon: '◈', end: true },
     { to: '/incidents', label: 'Incidents', icon: '⚠' },
     { to: '/audit-logs', label: 'Audit Logs', icon: '📋', adminOnly: true },
+    { to: '/users', label: 'Users', icon: '👥', adminOnly: true },
 ];
 
 export default function Layout() {
     const { user, logout, accessToken } = useAuthStore();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const { theme, toggleTheme } = useTheme();
+    useRealtimeToasts();
 
     const handleLogout = async () => {
         try {
@@ -66,6 +71,13 @@ export default function Layout() {
                             )}
                         </div>
                     )}
+                    <button
+                        className="btn btn-ghost btn-icon"
+                        onClick={toggleTheme}
+                        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    >
+                        {theme === 'dark' ? '☀' : '🌙'}
+                    </button>
                     <button
                         className="btn btn-ghost btn-icon"
                         onClick={handleLogout}

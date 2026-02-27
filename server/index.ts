@@ -10,6 +10,7 @@ import { prisma } from './lib/prisma.js';
 import { setupSocket } from './socket/index.js';
 import authRoutes from './routes/auth.js';
 import { createIncidentsRouter } from './routes/incidents.js';
+import { createCommentsRouter } from './routes/comments.js';
 import auditLogRoutes from './routes/auditLogs.js';
 import userRoutes from './routes/users.js';
 
@@ -51,6 +52,7 @@ app.get('/api/health', (_req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/incidents', createIncidentsRouter(io));
+app.use('/api/incidents/:incidentId/comments', createCommentsRouter(io));
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/users', userRoutes);
 

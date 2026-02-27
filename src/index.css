@@ -66,6 +66,29 @@
   --transition-slow: 300ms ease;
 }
 
+/* Light theme overrides */
+[data-theme="light"] {
+  --bg-base: #f5f6fa;
+  --bg-surface: #ffffff;
+  --bg-card: #f8f9fc;
+  --bg-elevated: #eef0f6;
+  --bg-hover: #e4e7ef;
+
+  --border: rgba(0, 0, 0, 0.1);
+  --border-active: rgba(99, 102, 241, 0.5);
+
+  --text-primary: #1a1d2e;
+  --text-secondary: #4b5074;
+  --text-muted: #8b8fa8;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-glow: 0 0 24px rgba(99,102,241,0.1);
+
+  --accent: #6366f1;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; -webkit-font-smoothing: antialiased; }
